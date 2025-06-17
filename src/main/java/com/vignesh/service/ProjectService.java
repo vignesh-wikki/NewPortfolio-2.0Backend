@@ -9,8 +9,6 @@ import java.util.UUID;
 @Service
 public class ProjectService {
     @Value("${server.port}")
-    private int serverPort;
-
     private static String generateID() {
         return UUID.randomUUID().toString();
     }
