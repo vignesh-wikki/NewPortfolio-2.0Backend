@@ -36,7 +36,7 @@ jobs:
       - name: Build & push Docker image
         uses: vignesh-wikki/NewPortfolio-2.0Backend
         with:
-          image: vignesh-wikki/portfolio
+          image: vignesha445/portfolio
           tags: latest
           registry: docker.io
           dockerfile: Dockerfile
