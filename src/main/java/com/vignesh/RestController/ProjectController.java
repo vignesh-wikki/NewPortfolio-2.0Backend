@@ -14,7 +14,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
 @Slf4j
-@CrossOrigin(origins = "http://localhost:3000/")
+@CrossOrigin(origins = "https://wikki-portfolio.vercel.app")
 @RestController
 @RequestMapping("/api")
 public class ProjectController {
