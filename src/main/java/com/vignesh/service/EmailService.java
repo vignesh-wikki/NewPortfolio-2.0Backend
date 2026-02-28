@@ -3,41 +3,42 @@ package com.vignesh.service;
 import com.vignesh.model.EmailDetails;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-
+@Slf4j
 @Service
 public class EmailService {
     @Autowired
     private JavaMailSender javaMailSender;
+
     @Value("${spring.mail.username}")
     private String sender;
 
-    public String sendMailWithAttachment(EmailDetails details) {
+    public String sendMail(EmailDetails details) {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-        MimeMessageHelper mimeMessageHelper;
         try {
-            mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
-            mimeMessageHelper.setFrom(sender);
-            mimeMessageHelper.setTo(details.getEmail());
-            mimeMessageHelper.setText(details.getMessage());
-            mimeMessageHelper.setSubject("Contacting from Portfolio -" + details.getName());
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false);
+            helper.setFrom(sender);
+            helper.setTo(sender); // Send to yourself (portfolio owner)
+            helper.setReplyTo(details.getEmail()); // Reply goes to the visitor
+            helper.setSubject("Portfolio Contact: " + details.getName());
+            helper.setText(
+                    "Name: " + details.getName() + "\n"
+                            + "Email: " + details.getEmail() + "\n\n"
+                            + "Message:\n" + details.getMessage()
+            );
 
-            FileSystemResource file
-                    = new FileSystemResource(
-                    new File("src/main/resources/static/images/giphy.gif"));
-
-            mimeMessageHelper.addAttachment(file.getFilename(), file);
             javaMailSender.send(mimeMessage);
-            return "Mail sent Successfully";
+            log.info("Contact email sent successfully from: {}", details.getEmail());
+            return "Message sent successfully!";
         } catch (MessagingException e) {
-            return "Error while sending mail!!! " + e.getMessage();
+            log.error("Failed to send email: {}", e.getMessage());
+            throw new RuntimeException("Failed to send email: " + e.getMessage());
         }
     }
 }

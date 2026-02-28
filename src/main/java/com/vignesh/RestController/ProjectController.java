@@ -10,11 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
+import java.util.Map;
 
 @Slf4j
-@CrossOrigin(origins = "https://wikki-portfolio.vercel.app")
+@CrossOrigin(origins = {"https://wikki-portfolio.vercel.app", "http://localhost:5173", "http://localhost:3000"})
 @RestController
 @RequestMapping("/api")
 public class ProjectController {
@@ -25,13 +24,25 @@ public class ProjectController {
 
     @GetMapping("/get/data")
     public ResponseEntity<ProjectsModel[]> getAllProjectsData() {
-        return ResponseEntity.status(200).body(service.getAllData());
+        log.info("Projects data requested");
+        return ResponseEntity.ok(service.getAllData());
     }
 
     @PostMapping("/post/contact/data")
-    public ResponseEntity<String> sendMail(@Valid @RequestBody EmailDetails body) throws ExecutionException, InterruptedException {
-        FutureTask<String> futureTask = new FutureTask<>(() -> emailService.sendMailWithAttachment(body));
-        new Thread(futureTask).start();
-        return ResponseEntity.accepted().body(futureTask.get());
+    public ResponseEntity<Map<String, String>> sendMail(@Valid @RequestBody EmailDetails body) {
+        log.info("Contact form received from: {}", body.getName());
+        try {
+            String result = emailService.sendMail(body);
+            return ResponseEntity.ok(Map.of("status", "success", "message", result));
+        } catch (Exception e) {
+            log.error("Failed to send email: {}", e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("status", "error", "message", "Failed to send email. Please try again later."));
+        }
+    }
+
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, String>> health() {
+        return ResponseEntity.ok(Map.of("status", "UP", "service", "portfolio-backend"));
     }
 }
